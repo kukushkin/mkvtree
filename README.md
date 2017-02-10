@@ -23,14 +23,14 @@ Or install it yourself as:
 ```
 mkvt = MKVTree.new
 
-mkvt.root # => root hash of an empty tree
+mkvt.roothash # => root hash of an empty tree
 
 key   = Digest::SHA256.digest('my_key')
 value = Digest::SHA256.digest('my_value')
 mkvt[key] = value
 
-mkvt.root # => root hash of an updated tree
-mkvt[key] # => value (hash of 'my_value')
+mkvt.roothash # => root hash of an updated tree
+mkvt[key]     # => value (hash of 'my_value')
 mkvt.proof(key) # => proof (path from the leaf to the root) of a key
 ```
 
