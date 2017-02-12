@@ -77,6 +77,30 @@ class MKVTree
     self.class.bin2hex(roothash)
   end
 
+  # Returns a proof for the given key
+  #
+  # @param key [String] key as a byte array
+  # @return [Hash] proof
+  #
+  def proof(key)
+    path = []
+    roothash # pre-calculate inner nodes' hashes
+    node = root_node
+    ba_key = Bitarray.new(key)
+    # descend to the node or bail with null value hash
+    1.upto(KEY_SIZE) do |depth|
+      path << node_subhashes(node)
+      bit = ba_key[depth - 1]
+      node = ((bit == 0) ? node.left : node.right) || Node.null(node.depth + 1)
+    end
+    {
+      roothash: roothash,
+      key: key,
+      value: (node.value || self.class.null_value_hash),
+      path: path
+    }
+  end
+
   # Validates the given proof
   #
   # @param proof [Hash]
