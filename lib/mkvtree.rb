@@ -25,19 +25,21 @@ class MKVTree
   # @param value [String] hash of the value as a byte array
   #
   def []=(key, value)
+    root_node._hash = nil # reset pre-calculated roothash
     node = root_node
     ba_key = Bitarray.new(key)
 
     # finds or creates the node
     1.upto(KEY_SIZE) do |depth|
       bit = ba_key[depth - 1]
-      if bit == 0
-        # 0, descend left
-        node = node.left || (node.left = Node.new(key, depth))
-      else
-        # 1, descend right
-        node = node.right || (node.right = Node.new(key, depth))
-      end
+      node =
+        if bit == 0
+          # 0, descend left
+          node.left ||= (node.left = Node.new(key, depth))
+        else
+          # 1, descend right
+          node.right ||= (node.right = Node.new(key, depth))
+        end
     end
     node.value = value
   end
@@ -53,35 +55,55 @@ class MKVTree
     # descend to the node or bail with null value hash
     1.upto(KEY_SIZE) do |depth|
       bit = ba_key[depth - 1]
-      node = bit == 0 ? node.left : node.right
+      node = (bit == 0) ? node.left : node.right
       return self.class.null_value_hash unless node
     end
     node.value
   end
 
+  # Recalculates if needed and returns the current roothash as a byte array
+  #
+  # @return [String] roothash as a byte array
+  #
   def roothash
-    hash_at(root_node)
+    root_node._hash || recalculate_hash_at(root_node)
   end
 
+  # Recalculates if needed and returns the current roothash as a hex-string
+  #
+  # @return [String] roothash as a hex-string
+  #
   def roothash_hex
     self.class.bin2hex(roothash)
   end
 
-  private
-
-  # Recursively computes the hash of the given node
+  # Validates the given proof
   #
-  def hash_at(node)
-    return node.value if node.value
-    left = node.left ? hash_at(node.left) : self.class.null_hash_at(node.depth + 1)
-    right = node.right ? hash_at(node.right) : self.class.null_hash_at(node.depth + 1)
-    self.class.hash_children(left, right)
+  # @param proof [Hash]
+  #
+  # @return [true,false]
+  #
+  def self.valid_proof?(_proof)
+    raise 'Not implemented'
   end
 
-  # Traverses the tree to the leaf with index +key+, creating the necessary nodes
-  # along the way.
+  private
+
+  # Recalculates hash of a given node and all of its subtrees
   #
-  def find_or_create_leaf(key)
+  def recalculate_hash_at(node)
+    return node._hash = node.value if node.value
+    recalculate_hash_at(node.left) if node.left
+    recalculate_hash_at(node.right) if node.right
+    node._hash = self.class.hash_children(*node_subhashes(node))
+  end
+
+  # Returns node sub-hashes (hashes of the left and right children, if any)
+  #
+  def node_subhashes(node)
+    l_hash = node.left ? node.left._hash : self.class.null_hash_at(node.depth + 1)
+    r_hash = node.right ? node.right._hash : self.class.null_hash_at(node.depth + 1)
+    [l_hash, r_hash]
   end
 
   # Hashes the given value

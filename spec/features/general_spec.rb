@@ -13,11 +13,19 @@ describe MKVTree do
     expect(MKVTree::KEY_SIZE).to eq 256
   end
 
+  it 'converts bin2hex correctly' do
+    expect(MKVTree.bin2hex("\x01\x02\x03\xFF")).to eq '010203ff'
+  end
+
+  it 'converts hex2bin correctly' do
+    expect(MKVTree.hex2bin('010203')).to eq "\x01\x02\x03".encode(Encoding::ASCII_8BIT)
+  end
+
   it 'uses SHA256' do
-    expect(MKVTree.bin2hex(MKVTree.hash(value))).to eq hash
+    expect(MKVTree.hash(value)).to eq MKVTree.hex2bin(hash)
   end
 
   it 'hashes the null value to {NULL_VALUE_HASH}' do
-    expect(MKVTree.bin2hex(MKVTree.null_value_hash)).to eq null_value_hash
+    expect(MKVTree.null_value_hash).to eq MKVTree.hex2bin(null_value_hash)
   end
 end # describe MKVTree
