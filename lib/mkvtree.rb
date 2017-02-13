@@ -69,18 +69,14 @@ class MKVTree
     root_node._hash || recalculate_hash_at(root_node)
   end
 
-  # Recalculates if needed and returns the current roothash as a hex-string
+  # Returns a proof for the given key.
   #
-  # @return [String] roothash as a hex-string
-  #
-  def roothash_hex
-    self.class.bin2hex(roothash)
-  end
-
-  # Returns a proof for the given key
+  # A proof contains the roothash, key, value and path from the leaf node up to the tree root
   #
   # @param key [String] key as a byte array
+  #
   # @return [Hash] proof
+  #
   #
   def proof(key)
     path = []
@@ -93,10 +89,11 @@ class MKVTree
       bit = ba_key[depth - 1]
       node = ((bit == 0) ? node.left : node.right) || Node.null(node.depth + 1)
     end
+    value = node.value || self.class.null_value_hash
     {
       roothash: roothash,
       key: key,
-      value: (node.value || self.class.null_value_hash),
+      value: value,
       path: path
     }
   end
@@ -107,8 +104,26 @@ class MKVTree
   #
   # @return [true,false]
   #
-  def self.valid_proof?(_proof)
-    raise 'Not implemented'
+  def self.valid_proof?(proof)
+    raise ArgumentError, 'Hash is expected as proof' unless proof.is_a?(Hash)
+    raise ArgumentError, 'proof[:roothash] is expected' unless proof.key?(:roothash)
+    raise ArgumentError, 'proof[:key] is expected' unless proof.key?(:key)
+    raise ArgumentError, 'proof[:value] is expected' unless proof.key?(:value)
+    raise ArgumentError, 'proof[:path] is expected' unless proof.key?(:path)
+    ba_key = Bitarray.new(proof[:key])
+    branch_hash = proof[:value]
+
+    # traverse the path bottom-up
+    KEY_SIZE.downto(1) do |depth|
+      bit = ba_key[depth - 1]
+      # check the subtree hash:
+      node_hash = ((bit == 0)) ? proof[:path][depth - 1].first : proof[:path][depth - 1].last
+      return false unless branch_hash == node_hash
+      # advance
+      branch_hash = hash_children(*proof[:path][depth - 1])
+    end
+    # finally, check the roothash
+    proof[:roothash] == branch_hash
   end
 
   private
