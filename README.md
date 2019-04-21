@@ -2,6 +2,8 @@
 
 A variation of Merkle key-value trees with key-value storage properties.
 
+[What is MKVTree and how it works](docs/introduction.md)
+
 ## Installation
 
 Add this line to your application's Gemfile:
