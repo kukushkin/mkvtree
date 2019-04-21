@@ -36,7 +36,6 @@ mkvt[key]     # => value (hash of 'my_value')
 mkvt.proof(key) # => proof (path from the leaf to the root) of a key
 ```
 
-## Contributing
+## License
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/mkvtree. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
-
+The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).

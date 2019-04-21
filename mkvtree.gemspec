@@ -11,7 +11,8 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'Merkle key-value trees'
   spec.description   = 'A variation of Merkle tree with key-value storage properties'
-  spec.homepage      = ''
+  spec.homepage      = 'https://github.com/kukushkin/mkvtree'
+  spec.license       = 'MIT'
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
   # delete this section to allow pushing this gem to any host.
